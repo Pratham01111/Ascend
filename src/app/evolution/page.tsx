@@ -1,11 +1,11 @@
 import NavHeader from "@/components/NavHeader";
-import CommandDashboard from "@/components/CommandDashboard";
+import EvolutionReveal from "@/components/EvolutionReveal";
 
-export default function Home() {
+export default function EvolutionPage() {
   return (
     <main className="flex flex-1 flex-col gap-14 px-6 py-12 lg:px-16 lg:py-16">
       <NavHeader />
-      <CommandDashboard />
+      <EvolutionReveal />
     </main>
   );
 }
