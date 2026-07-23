@@ -1,11 +1,28 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import Being from "./Being";
 import { usePlayer, useSpecInfo } from "./PlayerProvider";
+import { QUOTES, getDailyQuote } from "@/lib/quotes";
+
+function subscribeNever() {
+  return () => {};
+}
+function getQuoteSnapshot() {
+  return getDailyQuote(new Date());
+}
+function getServerQuoteSnapshot() {
+  return QUOTES[0];
+}
 
 export default function CommandDashboard() {
   const { missions, toggleMission, doneCount, totalCount, level, xpInLevel, xpMax } = usePlayer();
   const spec = useSpecInfo();
+
+  // The quote depends on the visitor's local date, which the server can't know at
+  // build time — useSyncExternalStore resolves the real value on the client without
+  // a server/client mismatch.
+  const quote = useSyncExternalStore(subscribeNever, getQuoteSnapshot, getServerQuoteSnapshot);
 
   const dayPct = totalCount ? (doneCount / totalCount) * 100 : 0;
   const xpPct = (xpInLevel / xpMax) * 100;
@@ -89,7 +106,7 @@ export default function CommandDashboard() {
               className="text-[38px] leading-[1.22] font-semibold text-[#E8EAF2]"
               style={{ textWrap: "pretty" as const }}
             >
-              Your excuses have a perfect attendance record.
+              {quote}
             </div>
           </div>
 
