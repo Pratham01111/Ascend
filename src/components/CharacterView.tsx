@@ -1,19 +1,20 @@
-import Hero from "./Hero";
-import { ACCENTS } from "@/lib/accent";
-import {
-  ACTIVE_DAYS,
-  ACTIVE_DAYS_MAX,
-  CATEGORIES,
-  CHARACTER_LEVEL,
-  CHARACTER_NAME,
-  MILESTONES,
-  RECENT_ACTIONS,
-} from "@/lib/character";
+"use client";
 
-const { accent, glow, dim } = ACCENTS.amber;
+import Being from "./Being";
+import { usePlayer, useSpecInfo } from "./PlayerProvider";
+import { CATEGORY_COLORS, MILESTONES } from "@/lib/character";
+
+const CATEGORY_ORDER = ["Mind", "Engineering", "Physical", "Discipline", "Career"];
 
 export default function CharacterView() {
-  const consistencyPct = (ACTIVE_DAYS / ACTIVE_DAYS_MAX) * 100;
+  const { missions, doneCount, totalCount, totalXP, level, categoryXP } = usePlayer();
+  const spec = useSpecInfo();
+
+  const consistencyPct = totalCount ? (doneCount / totalCount) * 100 : 0;
+  const consistencyLabel =
+    doneCount === 0 ? "UNPROVEN" : doneCount === totalCount ? "RELENTLESS" : "BUILDING";
+
+  const completedMissions = missions.filter((m) => m.done);
 
   return (
     <div className="flex flex-col gap-4">
@@ -35,18 +36,15 @@ export default function CharacterView() {
             background: "radial-gradient(circle at 50% 42%,#12141d 0%,#0B0D14 62%)",
           }}
         >
-          <div style={{ animation: "ascFloat 7s ease-in-out infinite" }}>
-            <Hero size={160} color={accent} />
-          </div>
+          <Being spec={spec.key} level={level} size={140} color={spec.accent} />
           <div
             className="mt-5 text-4xl font-bold lg:text-[46px]"
-            style={{ color: accent, textShadow: `0 0 32px ${glow}` }}
+            style={{ color: spec.accent, textShadow: `0 0 32px ${spec.glow}` }}
           >
-            {CHARACTER_NAME}
+            {spec.name}
           </div>
           <div className="mt-4 max-w-[360px] text-sm leading-relaxed text-[#9299AD]">
-            Emerged from the last 30 days of how you actually behaved — not
-            what you planned.
+            {spec.trait}
           </div>
         </div>
 
@@ -63,18 +61,18 @@ export default function CharacterView() {
                 Consistency
               </div>
               <div className="font-mono text-[11px] tracking-wide text-[#2ECC8F]">
-                ▲ RISING
+                {doneCount > 0 ? "▲ RISING" : "— NOT STARTED"}
               </div>
             </div>
             <div className="mb-4 flex items-baseline gap-4">
               <div
                 className="text-3xl font-bold tracking-wide"
-                style={{ color: accent }}
+                style={{ color: spec.accent }}
               >
-                RELENTLESS
+                {consistencyLabel}
               </div>
               <div className="font-mono text-[13px] text-[#9299AD]">
-                {ACTIVE_DAYS} / {ACTIVE_DAYS_MAX} active days
+                {doneCount} / {totalCount} missions today
               </div>
             </div>
             <div className="h-[7px] overflow-hidden rounded-full bg-[#161a26]">
@@ -82,8 +80,8 @@ export default function CharacterView() {
                 className="h-full rounded-full"
                 style={{
                   width: `${consistencyPct}%`,
-                  background: `linear-gradient(90deg,${dim},${accent})`,
-                  boxShadow: `0 0 14px ${glow}`,
+                  background: `linear-gradient(90deg,${spec.dim},${spec.accent})`,
+                  boxShadow: `0 0 14px ${spec.glow}`,
                 }}
               />
             </div>
@@ -93,26 +91,33 @@ export default function CharacterView() {
             {/* XP by category */}
             <div className="lg:flex-[1.25]">
               <div className="mb-5 font-mono text-[11px] tracking-[0.22em] uppercase text-[#9299AD]">
-                Where the XP went — last 30 days
+                Where the XP went — today
               </div>
-              {CATEGORIES.map((c) => (
-                <div key={c.name} className="mb-5">
-                  <div className="mb-2 flex justify-between font-mono text-[11px] tracking-wide">
-                    <span className="uppercase text-[#9299AD]">{c.name}</span>
-                    <span className="text-[#565d70]">{c.pct}%</span>
+              {CATEGORY_ORDER.map((cat) => {
+                const xp = categoryXP[cat] || 0;
+                const pct = totalXP ? (xp / totalXP) * 100 : 0;
+                const color = CATEGORY_COLORS[cat];
+                return (
+                  <div key={cat} className="mb-5">
+                    <div className="mb-2 flex justify-between font-mono text-[11px] tracking-wide">
+                      <span className="uppercase text-[#9299AD]">{cat}</span>
+                      <span className="text-[#565d70]">
+                        {xp ? `${xp} XP` : "—"}
+                      </span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-[#161a26]">
+                      <div
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          width: `${pct}%`,
+                          background: color,
+                          boxShadow: pct ? `0 0 10px ${color}66` : "none",
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-[#161a26]">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${c.pct * 2.6}%`,
-                        background: c.color,
-                        boxShadow: `0 0 10px ${c.color}66`,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Recent actions */}
@@ -120,17 +125,23 @@ export default function CharacterView() {
               <div className="mb-4 font-mono text-[11px] tracking-[0.22em] uppercase text-[#9299AD]">
                 Recent Actions
               </div>
-              {RECENT_ACTIONS.map((r) => (
-                <div
-                  key={r.name}
-                  className="flex items-center justify-between gap-4 border-b border-[#171b26] py-3"
-                >
-                  <span className="text-sm text-[#c9cdda]">{r.name}</span>
-                  <span className="whitespace-nowrap font-mono text-[11px] text-[#565d70]">
-                    {r.meta}
-                  </span>
+              {completedMissions.length === 0 ? (
+                <div className="text-sm text-[#565d70]">
+                  No actions logged yet today.
                 </div>
-              ))}
+              ) : (
+                completedMissions.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between gap-4 border-b border-[#171b26] py-3"
+                  >
+                    <span className="text-sm text-[#c9cdda]">{m.name}</span>
+                    <span className="whitespace-nowrap font-mono text-[11px] text-[#565d70]">
+                      Today · +{m.xp}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -141,21 +152,21 @@ export default function CharacterView() {
             </div>
             <div className="flex gap-3">
               {MILESTONES.map((ms) => {
-                const reached = CHARACTER_LEVEL >= ms.lv;
+                const reached = level >= ms.lv;
                 return (
                   <div
                     key={ms.lv}
                     className="flex-1 rounded-xl border px-1.5 py-4 text-center"
                     style={{
-                      borderColor: reached ? accent : "#20242F",
+                      borderColor: reached ? spec.accent : "#20242F",
                       background: reached ? "rgba(242,169,78,.06)" : "#101320",
                     }}
                   >
                     <div
                       className="mx-auto mb-2.5 h-2 w-2 rounded-full"
                       style={{
-                        background: reached ? accent : "#2d3342",
-                        boxShadow: reached ? `0 0 9px ${glow}` : "none",
+                        background: reached ? spec.accent : "#2d3342",
+                        boxShadow: reached ? `0 0 9px ${spec.glow}` : "none",
                       }}
                     />
                     <div

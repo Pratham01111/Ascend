@@ -47,6 +47,16 @@ a:hover {
   }
 }
 
+@keyframes beFloat {
+  0%,
+  100% {
+    transform: translateY(var(--fy, 0));
+  }
+  50% {
+    transform: translateY(calc(var(--fy, 0) - 0.05em));
+  }
+}
+
 @keyframes ascPulse {
   0%,
   100% {

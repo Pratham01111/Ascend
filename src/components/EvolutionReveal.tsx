@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Hero from "./Hero";
-import { ACCENTS } from "@/lib/accent";
-import { CHARACTER_NAME } from "@/lib/character";
-
-const { accent, glow } = ACCENTS.amber;
+import Being from "./Being";
+import { usePlayer, useSpecInfo } from "./PlayerProvider";
 
 export default function EvolutionReveal() {
+  const { level } = usePlayer();
+  const spec = useSpecInfo();
   const [phase, setPhase] = useState(0);
   const t1 = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const t2 = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -64,7 +63,7 @@ export default function EvolutionReveal() {
         <div
           className="absolute left-1/2 top-1/2 h-[1200px] w-[1200px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
-            background: `radial-gradient(circle,${glow} 0%,transparent 54%)`,
+            background: `radial-gradient(circle,${spec.glow} 0%,transparent 54%)`,
             animation: "ascPulse 3.4s ease-in-out infinite",
           }}
         />
@@ -72,13 +71,13 @@ export default function EvolutionReveal() {
         <div className="relative flex h-full flex-col items-center justify-center">
           <div
             className="absolute inset-x-0 top-10 text-center font-mono text-[13px] tracking-[0.42em] uppercase lg:top-20"
-            style={{ ...chargingStyle, color: accent }}
+            style={{ ...chargingStyle, color: spec.accent }}
           >
             Evolution Charging
           </div>
 
           <div className="mb-10" style={heroStyle}>
-            <Hero size={150} color={accent} />
+            <Being spec={spec.key} level={level} size={130} color={spec.accent} />
           </div>
 
           <div
@@ -90,12 +89,14 @@ export default function EvolutionReveal() {
             </div>
             <div
               className="text-5xl font-bold leading-none lg:text-[84px]"
-              style={{ color: accent, textShadow: `0 0 50px ${glow}` }}
+              style={{ color: spec.accent, textShadow: `0 0 50px ${spec.glow}` }}
             >
-              {CHARACTER_NAME}
+              {spec.name}
             </div>
             <div className="mt-6 text-sm text-[#9299AD]">
-              Your actions over the last 30 days shaped this form.
+              {spec.key === "initiate"
+                ? "Complete a mission on Command to begin specializing."
+                : "Today's actions shaped this form."}
             </div>
           </div>
 
@@ -111,4 +112,3 @@ export default function EvolutionReveal() {
     </div>
   );
 }
-

@@ -2,15 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSpecInfo } from "./PlayerProvider";
 
 const LINKS = [
   { href: "/", label: "Command" },
   { href: "/character", label: "Character" },
   { href: "/evolution", label: "Evolution" },
+  { href: "/specializations", label: "Specializations" },
 ];
 
 export default function NavHeader() {
   const pathname = usePathname();
+  const spec = useSpecInfo();
 
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-6">
@@ -30,7 +33,8 @@ export default function NavHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className={active ? "text-[#F2A94E]" : "text-[#565d70] hover:text-[#9299AD]"}
+              className={active ? "" : "text-[#565d70] hover:text-[#9299AD]"}
+              style={active ? { color: spec.accent } : undefined}
             >
               {link.label}
             </Link>

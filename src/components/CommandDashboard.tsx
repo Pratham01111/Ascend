@@ -1,55 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Hero from "./Hero";
-import { ACCENTS, type AccentKey } from "@/lib/accent";
-import { INITIAL_MISSIONS } from "@/lib/missions";
-
-const LEVEL = 18;
-const XP = 7840;
-const XP_MAX = 10000;
+import Being from "./Being";
+import { usePlayer, useSpecInfo } from "./PlayerProvider";
 
 export default function CommandDashboard() {
-  const [accentKey, setAccentKey] = useState<AccentKey>("amber");
-  const [missions, setMissions] = useState(INITIAL_MISSIONS);
+  const { missions, toggleMission, doneCount, totalCount, level, xpInLevel, xpMax } = usePlayer();
+  const spec = useSpecInfo();
 
-  const { accent, glow, dim } = ACCENTS[accentKey];
-
-  const doneCount = missions.filter((m) => m.done).length;
-  const totalCount = missions.length;
-  const dayPct = useMemo(
-    () => (totalCount ? (doneCount / totalCount) * 100 : 0),
-    [doneCount, totalCount]
-  );
-  const xpPct = (XP / XP_MAX) * 100;
-
-  function toggleMission(id: string) {
-    setMissions((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, done: !m.done } : m))
-    );
-  }
+  const dayPct = totalCount ? (doneCount / totalCount) * 100 : 0;
+  const xpPct = (xpInLevel / xpMax) * 100;
 
   return (
     <div className="flex flex-col gap-10">
-      <div className="flex items-center justify-between">
-        <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-[#565d70]">
-          01 — Command
-        </div>
-        <div className="flex items-center gap-2">
-          {(Object.keys(ACCENTS) as AccentKey[]).map((key) => (
-            <button
-              key={key}
-              type="button"
-              aria-label={`Set accent to ${ACCENTS[key].label}`}
-              onClick={() => setAccentKey(key)}
-              className="h-6 w-6 rounded-full border transition-transform hover:scale-110"
-              style={{
-                background: ACCENTS[key].accent,
-                borderColor: key === accentKey ? "#E8EAF2" : "transparent",
-              }}
-            />
-          ))}
-        </div>
+      <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-[#565d70]">
+        01 — Command
       </div>
 
       <div
@@ -66,11 +30,8 @@ export default function CommandDashboard() {
             background: "linear-gradient(180deg,#0e1119 0%,#0B0D14 100%)",
           }}
         >
-          <div
-            className="absolute right-8 top-8"
-            style={{ animation: "ascFloat 6s ease-in-out infinite" }}
-          >
-            <Hero size={64} color={accent} />
+          <div className="absolute right-8 top-8">
+            <Being spec={spec.key} level={level} size={56} color={spec.accent} />
           </div>
 
           <div className="flex flex-1 flex-col justify-center py-10">
@@ -79,22 +40,24 @@ export default function CommandDashboard() {
             </div>
             <div
               className="text-5xl leading-none font-bold"
-              style={{ color: accent, textShadow: `0 0 34px ${glow}` }}
+              style={{ color: spec.accent, textShadow: `0 0 34px ${spec.glow}` }}
             >
-              THE BUILDER
+              {spec.name}
             </div>
             <div className="mt-4 font-mono text-[11px] tracking-[0.16em] text-[#565d70]">
-              FORGED OVER 30 DAYS OF ACTION
+              {spec.key === "initiate"
+                ? "COMPLETE A MISSION TO BEGIN SPECIALIZING"
+                : "SHAPED BY TODAY'S ACTIONS"}
             </div>
           </div>
 
           <div>
             <div className="mb-3 flex items-baseline justify-between">
               <div className="text-lg font-semibold tracking-wide">
-                LEVEL {LEVEL}
+                LEVEL {level}
               </div>
               <div className="font-mono text-xs tracking-wide text-[#9299AD]">
-                {XP.toLocaleString()} / {XP_MAX.toLocaleString()} XP
+                {xpInLevel} / {xpMax} XP
               </div>
             </div>
             <div className="h-[9px] overflow-hidden rounded-full border border-[#20242F] bg-[#161a26]">
@@ -102,8 +65,8 @@ export default function CommandDashboard() {
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${xpPct}%`,
-                  background: `linear-gradient(90deg,${dim},${accent})`,
-                  boxShadow: `0 0 16px ${glow}`,
+                  background: `linear-gradient(90deg,${spec.dim},${spec.accent})`,
+                  boxShadow: `0 0 16px ${spec.glow}`,
                 }}
               />
             </div>
@@ -114,11 +77,11 @@ export default function CommandDashboard() {
         <div className="flex flex-1 flex-col px-9 py-12 lg:px-14 lg:py-16">
           <div
             className="relative max-w-[760px] rounded-2xl border border-[#20242F] bg-[#12151F] px-8 py-8"
-            style={{ borderLeft: `3px solid ${accent}` }}
+            style={{ borderLeft: `3px solid ${spec.accent}` }}
           >
-            <CornerMark accent={accent} corner="tr" />
-            <CornerMark accent={accent} corner="bl" />
-            <CornerMark accent={accent} corner="br" />
+            <CornerMark accent={spec.accent} corner="tr" />
+            <CornerMark accent={spec.accent} corner="bl" />
+            <CornerMark accent={spec.accent} corner="br" />
             <div className="mb-4 font-mono text-[11px] tracking-[0.26em] uppercase text-[#9299AD]">
               Today&apos;s Battle Cry
             </div>
@@ -144,7 +107,7 @@ export default function CommandDashboard() {
                 className="h-full rounded-full transition-all duration-300"
                 style={{
                   width: `${dayPct}%`,
-                  background: `linear-gradient(90deg,${dim},${accent})`,
+                  background: `linear-gradient(90deg,${spec.dim},${spec.accent})`,
                 }}
               />
             </div>
@@ -161,7 +124,7 @@ export default function CommandDashboard() {
                     className="flex h-6 w-6 flex-none items-center justify-center rounded-[7px]"
                     style={
                       m.done
-                        ? { background: accent, boxShadow: `0 0 14px ${glow}` }
+                        ? { background: spec.accent, boxShadow: `0 0 14px ${spec.glow}` }
                         : { border: "1.5px solid #2d3342", background: "transparent" }
                     }
                   >
