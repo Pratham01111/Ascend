@@ -4,6 +4,12 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import Being from "./Being";
 import { usePlayer, useSpecInfo } from "./PlayerProvider";
 import { QUOTES, getDailyQuote } from "@/lib/quotes";
+import {
+  getQuoteUnlockSnapshot,
+  getServerQuoteUnlockSnapshot,
+  subscribeQuoteUnlock,
+  unlockTodayQuote,
+} from "@/lib/quoteUnlock";
 import { MISSION_CATEGORIES } from "@/lib/specs";
 
 function subscribeNever() {
@@ -38,6 +44,11 @@ export default function CommandDashboard() {
   // build time — useSyncExternalStore resolves the real value on the client without
   // a server/client mismatch.
   const quote = useSyncExternalStore(subscribeNever, getQuoteSnapshot, getServerQuoteSnapshot);
+  const isQuoteUnlocked = useSyncExternalStore(
+    subscribeQuoteUnlock,
+    getQuoteUnlockSnapshot,
+    getServerQuoteUnlockSnapshot
+  );
 
   // Fire a brief level-up animation whenever level actually increases (never on
   // mission-uncheck, never on first load). Adjusting state during render — rather
@@ -159,17 +170,35 @@ export default function CommandDashboard() {
         <div className="flex flex-1 flex-col px-9 py-12 lg:px-14 lg:py-16">
           <div
             className="relative max-w-[760px] rounded-2xl border border-[#20242F] bg-[#12151F] px-8 py-8"
-            style={{ borderLeft: `3px solid ${spec.accent}` }}
+            style={{
+              borderLeft: `3px solid ${spec.accent}`,
+              cursor: isQuoteUnlocked ? "default" : "pointer",
+            }}
+            onClick={isQuoteUnlocked ? undefined : unlockTodayQuote}
           >
             <CornerMark accent={spec.accent} corner="tr" />
             <CornerMark accent={spec.accent} corner="bl" />
             <CornerMark accent={spec.accent} corner="br" />
-            <div className="mb-4 font-mono text-[11px] tracking-[0.26em] uppercase text-[#9299AD]">
-              Today&apos;s Battle Cry
+            <div className="mb-4 flex items-center justify-between">
+              <div className="font-mono text-[11px] tracking-[0.26em] uppercase text-[#9299AD]">
+                Today&apos;s Battle Cry
+              </div>
+              {!isQuoteUnlocked && (
+                <div
+                  className="font-mono text-[10px] tracking-[0.18em] uppercase"
+                  style={{ color: spec.accent }}
+                >
+                  ✦ Tap to reveal
+                </div>
+              )}
             </div>
             <div
-              className="text-[38px] leading-[1.22] font-semibold text-[#E8EAF2]"
-              style={{ textWrap: "pretty" as const }}
+              className="text-[38px] leading-[1.22] font-semibold text-[#E8EAF2] transition-[filter] duration-500"
+              style={{
+                textWrap: "pretty" as const,
+                filter: isQuoteUnlocked ? "none" : "blur(9px)",
+                userSelect: isQuoteUnlocked ? "auto" : "none",
+              }}
             >
               {quote}
             </div>
