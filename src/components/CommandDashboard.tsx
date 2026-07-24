@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Being from "./Being";
 import { usePlayer, useSpecInfo } from "./PlayerProvider";
 import { QUOTES, getDailyQuote } from "@/lib/quotes";
@@ -23,6 +23,22 @@ export default function CommandDashboard() {
   // build time — useSyncExternalStore resolves the real value on the client without
   // a server/client mismatch.
   const quote = useSyncExternalStore(subscribeNever, getQuoteSnapshot, getServerQuoteSnapshot);
+
+  // Fire a brief level-up animation whenever level actually increases (never on
+  // mission-uncheck, never on first load). Adjusting state during render — rather
+  // than in an effect — is the recommended pattern for reacting to a prop/derived
+  // value change; the timeout that clears it is the part that genuinely needs an effect.
+  const [prevLevel, setPrevLevel] = useState(level);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  if (level !== prevLevel) {
+    if (level > prevLevel) setShowLevelUp(true);
+    setPrevLevel(level);
+  }
+  useEffect(() => {
+    if (!showLevelUp) return;
+    const t = setTimeout(() => setShowLevelUp(false), 1400);
+    return () => clearTimeout(t);
+  }, [showLevelUp]);
 
   const dayPct = totalCount ? (doneCount / totalCount) * 100 : 0;
   const xpPct = (xpInLevel / xpMax) * 100;
@@ -47,7 +63,10 @@ export default function CommandDashboard() {
             background: "linear-gradient(180deg,#0e1119 0%,#0B0D14 100%)",
           }}
         >
-          <div className="absolute right-8 top-8">
+          <div
+            className="absolute right-8 top-8"
+            style={showLevelUp ? { animation: "levelUpPulse 0.9s ease-out" } : undefined}
+          >
             <Being spec={spec.key} level={level} size={56} color={spec.accent} />
           </div>
 
@@ -70,8 +89,23 @@ export default function CommandDashboard() {
 
           <div>
             <div className="mb-3 flex items-baseline justify-between">
-              <div className="text-lg font-semibold tracking-wide">
-                LEVEL {level}
+              <div className="flex items-center gap-2">
+                <div className="text-lg font-semibold tracking-wide">
+                  LEVEL {level}
+                </div>
+                {showLevelUp && (
+                  <span
+                    className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold tracking-[0.14em]"
+                    style={{
+                      animation: "levelUpBadge 1.4s ease-out",
+                      color: spec.accent,
+                      border: `1px solid ${spec.accent}`,
+                      boxShadow: `0 0 10px ${spec.glow}`,
+                    }}
+                  >
+                    LEVEL UP
+                  </span>
+                )}
               </div>
               <div className="font-mono text-xs tracking-wide text-[#9299AD]">
                 {xpInLevel} / {xpMax} XP
