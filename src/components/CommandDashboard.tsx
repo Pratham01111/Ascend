@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import Being from "./Being";
 import { usePlayer, useSpecInfo } from "./PlayerProvider";
 import { QUOTES, getDailyQuote } from "@/lib/quotes";
+import { MISSION_CATEGORIES } from "@/lib/specs";
 
 function subscribeNever() {
   return () => {};
@@ -15,9 +16,23 @@ function getServerQuoteSnapshot() {
   return QUOTES[0];
 }
 
+const LEVEL_UP_DURATION_MS = 1800;
+
 export default function CommandDashboard() {
-  const { missions, toggleMission, doneCount, totalCount, level, xpInLevel, xpMax } = usePlayer();
+  const {
+    missions,
+    toggleMission,
+    addMission,
+    updateMission,
+    removeMission,
+    doneCount,
+    totalCount,
+    level,
+    xpInLevel,
+    xpMax,
+  } = usePlayer();
   const spec = useSpecInfo();
+  const [editMode, setEditMode] = useState(false);
 
   // The quote depends on the visitor's local date, which the server can't know at
   // build time — useSyncExternalStore resolves the real value on the client without
@@ -36,7 +51,7 @@ export default function CommandDashboard() {
   }
   useEffect(() => {
     if (!showLevelUp) return;
-    const t = setTimeout(() => setShowLevelUp(false), 1400);
+    const t = setTimeout(() => setShowLevelUp(false), LEVEL_UP_DURATION_MS);
     return () => clearTimeout(t);
   }, [showLevelUp]);
 
@@ -50,12 +65,28 @@ export default function CommandDashboard() {
       </div>
 
       <div
-        className="flex flex-col lg:flex-row overflow-hidden rounded-[22px] border border-[#20242F] bg-[#0B0D14]"
+        className="relative flex flex-col overflow-hidden rounded-[22px] border border-[#20242F] bg-[#0B0D14] lg:flex-row"
         style={{
           boxShadow:
             "0 50px 140px -50px rgba(0,0,0,.9), inset 0 0 220px 40px rgba(0,0,0,.55)",
+          ...(showLevelUp
+            ? ({
+                animation: `levelUpCardFlash ${LEVEL_UP_DURATION_MS}ms ease-out`,
+                ["--lu-color" as string]: spec.glow,
+              } as React.CSSProperties)
+            : undefined),
         }}
       >
+        {showLevelUp && (
+          <div
+            className="pointer-events-none absolute inset-0 z-0"
+            style={{
+              background: `radial-gradient(circle at 20% 30%,${spec.glow} 0%,transparent 65%)`,
+              animation: `levelUpSweep ${LEVEL_UP_DURATION_MS}ms ease-out`,
+            }}
+          />
+        )}
+
         {/* Identity column */}
         <div
           className="relative flex w-full flex-none flex-col border-b border-[#20242F] px-9 py-12 lg:w-[420px] lg:border-r lg:border-b-0"
@@ -95,15 +126,15 @@ export default function CommandDashboard() {
                 </div>
                 {showLevelUp && (
                   <span
-                    className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold tracking-[0.14em]"
+                    className="rounded-full px-3 py-1 font-mono text-xs font-bold tracking-[0.18em]"
                     style={{
-                      animation: "levelUpBadge 1.4s ease-out",
+                      animation: `levelUpBadge ${LEVEL_UP_DURATION_MS}ms ease-out`,
                       color: spec.accent,
-                      border: `1px solid ${spec.accent}`,
-                      boxShadow: `0 0 10px ${spec.glow}`,
+                      border: `1.5px solid ${spec.accent}`,
+                      boxShadow: `0 0 22px ${spec.glow}`,
                     }}
                   >
-                    LEVEL UP
+                    ★ LEVEL UP ★
                   </span>
                 )}
               </div>
@@ -146,8 +177,18 @@ export default function CommandDashboard() {
 
           <div className="mt-12 max-w-[760px] flex-1">
             <div className="mb-4 flex items-center justify-between">
-              <div className="font-mono text-xs tracking-[0.24em] uppercase text-[#9299AD]">
-                Today&apos;s Missions
+              <div className="flex items-center gap-3">
+                <div className="font-mono text-xs tracking-[0.24em] uppercase text-[#9299AD]">
+                  Today&apos;s Missions
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditMode((v) => !v)}
+                  className="rounded-full border border-[#2d3342] px-2.5 py-1 font-mono text-[10px] tracking-[0.12em] uppercase text-[#9299AD] hover:border-[#565d70] hover:text-[#E8EAF2]"
+                  style={editMode ? { borderColor: spec.accent, color: spec.accent } : undefined}
+                >
+                  {editMode ? "Done editing" : "Edit goals"}
+                </button>
               </div>
               <div className="font-mono text-xs text-[#565d70]">
                 {doneCount}/{totalCount} complete
@@ -164,47 +205,111 @@ export default function CommandDashboard() {
             </div>
 
             <div>
-              {missions.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => toggleMission(m.id)}
-                  className="flex w-full items-center gap-5 border-b border-[#171b26] px-1.5 py-[19px] text-left cursor-pointer"
-                >
-                  <span
-                    className="flex h-6 w-6 flex-none items-center justify-center rounded-[7px]"
-                    style={
-                      m.done
-                        ? { background: spec.accent, boxShadow: `0 0 14px ${spec.glow}` }
-                        : { border: "1.5px solid #2d3342", background: "transparent" }
-                    }
+              {missions.map((m) =>
+                editMode ? (
+                  <div
+                    key={m.id}
+                    className="flex w-full items-center gap-3 border-b border-[#171b26] px-1.5 py-3"
                   >
-                    {m.done && (
-                      <span className="text-sm leading-none font-bold text-[#0B0D14]">
-                        ✓
-                      </span>
-                    )}
-                  </span>
-                  <span
-                    className="min-w-0 flex-1 text-base font-medium"
-                    style={
-                      m.done
-                        ? {
-                            color: "#6b7183",
-                            textDecoration: "line-through",
-                            textDecorationColor: "#3a4050",
-                          }
-                        : { color: "#E8EAF2" }
-                    }
+                    <span
+                      onClick={() => toggleMission(m.id)}
+                      className="flex h-6 w-6 flex-none cursor-pointer items-center justify-center rounded-[7px]"
+                      style={
+                        m.done
+                          ? { background: spec.accent, boxShadow: `0 0 14px ${spec.glow}` }
+                          : { border: "1.5px solid #2d3342", background: "transparent" }
+                      }
+                    >
+                      {m.done && (
+                        <span className="text-sm leading-none font-bold text-[#0B0D14]">
+                          ✓
+                        </span>
+                      )}
+                    </span>
+                    <input
+                      value={m.name}
+                      onChange={(e) => updateMission(m.id, { name: e.target.value })}
+                      className="min-w-0 flex-1 border-b border-transparent bg-transparent text-base font-medium text-[#E8EAF2] focus:border-[#565d70] focus:outline-none"
+                    />
+                    <select
+                      value={m.cat}
+                      onChange={(e) => updateMission(m.id, { cat: e.target.value })}
+                      className="flex-none rounded border border-[#2d3342] bg-[#0B0D14] px-2 py-1 font-mono text-[11px] uppercase text-[#9299AD] focus:outline-none"
+                    >
+                      {MISSION_CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min={0}
+                      value={m.xp}
+                      onChange={(e) => updateMission(m.id, { xp: Number(e.target.value) || 0 })}
+                      className="w-16 flex-none rounded border border-[#2d3342] bg-[#0B0D14] px-2 py-1 text-right font-mono text-[11px] text-[#9299AD] focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeMission(m.id)}
+                      aria-label={`Remove ${m.name}`}
+                      className="flex-none px-1 font-mono text-sm text-[#565d70] hover:text-[#E5484D]"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => toggleMission(m.id)}
+                    className="flex w-full items-center gap-5 border-b border-[#171b26] px-1.5 py-[19px] text-left cursor-pointer"
                   >
-                    {m.name}
-                  </span>
-                  <span className="whitespace-nowrap font-mono text-[11px] tracking-wide text-[#565d70]">
-                    {m.cat.toUpperCase()} · +{m.xp} XP
-                  </span>
-                </button>
-              ))}
+                    <span
+                      className="flex h-6 w-6 flex-none items-center justify-center rounded-[7px]"
+                      style={
+                        m.done
+                          ? { background: spec.accent, boxShadow: `0 0 14px ${spec.glow}` }
+                          : { border: "1.5px solid #2d3342", background: "transparent" }
+                      }
+                    >
+                      {m.done && (
+                        <span className="text-sm leading-none font-bold text-[#0B0D14]">
+                          ✓
+                        </span>
+                      )}
+                    </span>
+                    <span
+                      className="min-w-0 flex-1 text-base font-medium"
+                      style={
+                        m.done
+                          ? {
+                              color: "#6b7183",
+                              textDecoration: "line-through",
+                              textDecorationColor: "#3a4050",
+                            }
+                          : { color: "#E8EAF2" }
+                      }
+                    >
+                      {m.name}
+                    </span>
+                    <span className="whitespace-nowrap font-mono text-[11px] tracking-wide text-[#565d70]">
+                      {m.cat.toUpperCase()} · +{m.xp} XP
+                    </span>
+                  </button>
+                )
+              )}
             </div>
+
+            {editMode && (
+              <button
+                type="button"
+                onClick={addMission}
+                className="mt-3 w-full rounded-lg border border-dashed border-[#2d3342] px-3 py-2.5 text-center font-mono text-[11px] tracking-[0.12em] uppercase text-[#565d70] hover:border-[#565d70] hover:text-[#9299AD]"
+              >
+                + Add goal
+              </button>
+            )}
           </div>
         </div>
       </div>

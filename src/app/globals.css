@@ -102,3 +102,54 @@ a:hover {
     transform: translate(-50%, -50%) scale(1.07);
   }
 }
+
+@keyframes levelUpCardFlash {
+  0% {
+    box-shadow:
+      0 50px 140px -50px rgba(0, 0, 0, 0.9),
+      inset 0 0 220px 40px rgba(0, 0, 0, 0.55),
+      0 0 0 0 var(--lu-color, transparent);
+  }
+  25% {
+    box-shadow:
+      0 50px 140px -50px rgba(0, 0, 0, 0.9),
+      inset 0 0 220px 40px rgba(0, 0, 0, 0.55),
+      0 0 140px 24px var(--lu-color, transparent);
+  }
+  100% {
+    box-shadow:
+      0 50px 140px -50px rgba(0, 0, 0, 0.9),
+      inset 0 0 220px 40px rgba(0, 0, 0, 0.55),
+      0 0 0 0 var(--lu-color, transparent);
+  }
+}
+
+@keyframes levelUpSweep {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes ambientDrift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(var(--drift-x, 60px), var(--drift-y, -40px)) scale(1.08);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-orb {
+    animation: none !important;
+  }
+}

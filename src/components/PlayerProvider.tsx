@@ -3,11 +3,16 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { INITIAL_MISSIONS, type Mission } from "@/lib/missions";
 import { computeCategoryXP, computeLevel, computeSpec } from "@/lib/player";
-import { SPECS, type SpecKey } from "@/lib/specs";
+import { MISSION_CATEGORIES, SPECS, type SpecKey } from "@/lib/specs";
+
+export type MissionEdits = Partial<Pick<Mission, "name" | "cat" | "xp">>;
 
 type PlayerContextValue = {
   missions: Mission[];
   toggleMission: (id: string) => void;
+  addMission: () => void;
+  updateMission: (id: string, edits: MissionEdits) => void;
+  removeMission: (id: string) => void;
   doneCount: number;
   totalCount: number;
   totalXP: number;
@@ -27,6 +32,27 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setMissions((prev) => prev.map((m) => (m.id === id ? { ...m, done: !m.done } : m)));
   }
 
+  function addMission() {
+    setMissions((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        name: "New goal",
+        cat: MISSION_CATEGORIES[0],
+        xp: 50,
+        done: false,
+      },
+    ]);
+  }
+
+  function updateMission(id: string, edits: MissionEdits) {
+    setMissions((prev) => prev.map((m) => (m.id === id ? { ...m, ...edits } : m)));
+  }
+
+  function removeMission(id: string) {
+    setMissions((prev) => prev.filter((m) => m.id !== id));
+  }
+
   const value = useMemo<PlayerContextValue>(() => {
     const doneCount = missions.filter((m) => m.done).length;
     const totalXP = missions.filter((m) => m.done).reduce((sum, m) => sum + m.xp, 0);
@@ -37,6 +63,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     return {
       missions,
       toggleMission,
+      addMission,
+      updateMission,
+      removeMission,
       doneCount,
       totalCount: missions.length,
       totalXP,

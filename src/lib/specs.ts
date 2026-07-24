@@ -66,3 +66,6 @@ export const CATEGORY_TO_SPEC: Record<string, SpecKey> = {
   Physical: "warrior",
   Mind: "scholar",
 };
+
+/** Categories a goal can be assigned to — each one feeds a specialization. */
+export const MISSION_CATEGORIES = Object.keys(CATEGORY_TO_SPEC);
