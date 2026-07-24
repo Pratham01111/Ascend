@@ -4,7 +4,7 @@ import Being from "./Being";
 import { usePlayer, useSpecInfo } from "./PlayerProvider";
 import { CATEGORY_COLORS, MILESTONES } from "@/lib/character";
 
-const CATEGORY_ORDER = ["Mind", "Engineering", "Physical", "Discipline", "Career"];
+const CATEGORY_ORDER = ["Mind", "Engineering", "Physical"];
 
 export default function CharacterView() {
   const { missions, doneCount, totalCount, totalXP, level, categoryXP } = usePlayer();

@@ -1,13 +1,25 @@
 import { CATEGORY_TO_SPEC, SPECS, type SpecInfo, type SpecKey } from "./specs";
 import type { Mission } from "./missions";
 
-/** Flat XP-per-level curve. No backend yet, so this only tracks XP earned this session. */
-export const XP_PER_LEVEL = 150;
+/**
+ * XP required to go from `level` to `level + 1`. Grows each level so early
+ * levels come quickly and later ones take real sustained effort — no backend
+ * yet, so this only tracks XP earned this session.
+ */
+function xpToNextLevel(level: number): number {
+  return 100 + level * 40;
+}
 
 export function computeLevel(totalXP: number) {
-  const level = Math.floor(totalXP / XP_PER_LEVEL);
-  const xpInLevel = totalXP - level * XP_PER_LEVEL;
-  return { level, xpInLevel, xpMax: XP_PER_LEVEL };
+  let level = 0;
+  let remaining = totalXP;
+  let threshold = xpToNextLevel(level);
+  while (remaining >= threshold) {
+    remaining -= threshold;
+    level += 1;
+    threshold = xpToNextLevel(level);
+  }
+  return { level, xpInLevel: remaining, xpMax: threshold };
 }
 
 export function computeCategoryXP(missions: Mission[]) {

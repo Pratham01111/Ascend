@@ -37,7 +37,7 @@ export default function SpecializationsView() {
             </div>
             <div className="mt-5 max-w-[480px] text-base leading-relaxed text-[#9299AD]">
               {initiate.trait} After enough consistent action in one category, the
-              form resolves into one of five specializations and takes on its color.
+              form resolves into one of three specializations and takes on its color.
             </div>
             <div className="mt-7 flex flex-wrap gap-6 font-mono text-[11px] tracking-[0.14em] text-[#565d70]">
               <div>LEVEL 0</div>
@@ -51,13 +51,13 @@ export default function SpecializationsView() {
       <div>
         <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
           <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-[#565d70]">
-            Five Specializations — shown at Level 30
+            Three Specializations — shown at Level 30
           </div>
           <div className="font-mono text-[11px] tracking-[0.14em] text-[#565d70]">
             Same skeleton · color + back-element swap
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
           {SPEC_ORDER.map((key) => {
             const s = SPECS[key];
             return (

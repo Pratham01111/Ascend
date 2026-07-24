@@ -2,8 +2,6 @@ export const CATEGORY_COLORS: Record<string, string> = {
   Mind: "#45B8E0",
   Engineering: "#F2A94E",
   Physical: "#E5484D",
-  Discipline: "#8A93A8",
-  Career: "#2ECC8F",
 };
 
 export type Milestone = { name: string; lv: number };

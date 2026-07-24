@@ -1,10 +1,4 @@
-export type SpecKey =
-  | "initiate"
-  | "builder"
-  | "warrior"
-  | "scholar"
-  | "operator"
-  | "disciplined";
+export type SpecKey = "initiate" | "builder" | "warrior" | "scholar";
 
 export type SpecInfo = {
   key: SpecKey;
@@ -62,43 +56,13 @@ export const SPECS: Record<SpecKey, SpecInfo> = {
       "Arcane, weightless. A halo and orbiting rune-glyphs circle a lean, robed silhouette.",
     back: "BACK — HALO + ORBITING GLYPHS",
   },
-  operator: {
-    key: "operator",
-    name: "THE OPERATOR",
-    colorName: "EMERALD",
-    accent: "#2ECC8F",
-    glow: "rgba(46,204,143,.5)",
-    dim: "#1f8a61",
-    trait:
-      "Sleek, commanding. A sharp mantle and a thin network-constellation of linked points.",
-    back: "BACK — MANTLE + NETWORK",
-  },
-  disciplined: {
-    key: "disciplined",
-    name: "THE DISCIPLINED",
-    colorName: "STEEL / SILVER",
-    accent: "#C7CDD9",
-    glow: "rgba(199,205,217,.45)",
-    dim: "#8b93a8",
-    trait:
-      "Restraint as power. No excess armor — one perfect aura, a meditative floating pose.",
-    back: "BACK — NONE · PURE AURA",
-  },
 };
 
-export const SPEC_ORDER: SpecKey[] = [
-  "builder",
-  "warrior",
-  "scholar",
-  "operator",
-  "disciplined",
-];
+export const SPEC_ORDER: SpecKey[] = ["builder", "warrior", "scholar"];
 
 /** Which specialization a mission category feeds XP into. */
 export const CATEGORY_TO_SPEC: Record<string, SpecKey> = {
   Engineering: "builder",
   Physical: "warrior",
   Mind: "scholar",
-  Career: "operator",
-  Discipline: "disciplined",
 };

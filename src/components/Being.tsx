@@ -38,7 +38,7 @@ export default function Being({ spec, level, size = 120, color = "#8B93A8", clas
   };
   const ringStyle: CSSProperties = { opacity: ringOn ? 0.6 : initiate ? 0.28 : 0.4 };
 
-  const showLegs = !is("scholar") && !is("disciplined");
+  const showLegs = !is("scholar");
   const stance = is("warrior") ? 22 : 9;
   const legBase: CSSProperties = {
     position: "absolute",
@@ -88,25 +88,6 @@ export default function Being({ spec, level, size = 120, color = "#8B93A8", clas
       width: "0.3em",
       height: "0.3em",
       clipPath: "polygon(50% 0,90% 50%,50% 100%,10% 50%)",
-    };
-  } else if (is("operator")) {
-    coreStyle = {
-      ...coreBase,
-      left: "1.15em",
-      top: "1.18em",
-      width: "0.28em",
-      height: "0.28em",
-      borderRadius: "50%",
-      boxShadow: "0 0 0 0.03em currentColor,0 0 0.16em currentColor",
-    };
-  } else if (is("disciplined")) {
-    coreStyle = {
-      ...coreBase,
-      left: "1.19em",
-      top: "1.24em",
-      width: "0.2em",
-      height: "0.2em",
-      borderRadius: "50%",
     };
   } else {
     coreStyle = {
@@ -162,37 +143,6 @@ export default function Being({ spec, level, size = 120, color = "#8B93A8", clas
             zIndex: 0,
           }}
         />
-        {is("disciplined") && (
-          <>
-            <div
-              style={{
-                position: "absolute",
-                left: "0.12em",
-                top: "0.17em",
-                width: "2.36em",
-                height: "2.36em",
-                borderRadius: "50%",
-                border: "0.02em solid currentColor",
-                opacity: 0.4,
-                zIndex: 0,
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                left: "0.5em",
-                top: "0.55em",
-                width: "1.6em",
-                height: "1.6em",
-                borderRadius: "50%",
-                border: "0.02em dashed currentColor",
-                opacity: 0.35,
-                zIndex: 0,
-              }}
-            />
-          </>
-        )}
-
         {/* BACK ELEMENT */}
         <div style={{ ...backStyle, position: "absolute", inset: 0, zIndex: 1 }}>
           {is("builder") && (
@@ -400,110 +350,6 @@ export default function Being({ spec, level, size = 120, color = "#8B93A8", clas
             </>
           )}
 
-          {is("operator") && (
-            <>
-              <div
-                style={{
-                  position: "absolute",
-                  left: "0.5em",
-                  top: "0.92em",
-                  width: "1.6em",
-                  height: "1.85em",
-                  clipPath: "polygon(38% 0,62% 0,100% 100%,0 100%)",
-                  background: "linear-gradient(180deg,currentColor,transparent 90%)",
-                  opacity: 0.34,
-                  filter: "drop-shadow(0 0 0.12em currentColor)",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  left: "0.34em",
-                  top: "0.44em",
-                  width: "0.9em",
-                  height: "0.02em",
-                  background: "currentColor",
-                  opacity: 0.4,
-                  transform: "rotate(38deg)",
-                  transformOrigin: "left",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  left: "0.34em",
-                  top: "0.46em",
-                  width: "0.7em",
-                  height: "0.02em",
-                  background: "currentColor",
-                  opacity: 0.4,
-                  transform: "rotate(-18deg)",
-                  transformOrigin: "left",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  left: "1.9em",
-                  top: "0.42em",
-                  width: "0.8em",
-                  height: "0.02em",
-                  background: "currentColor",
-                  opacity: 0.4,
-                  transform: "rotate(-40deg)",
-                  transformOrigin: "right",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  left: "0.32em",
-                  top: "0.42em",
-                  width: "0.1em",
-                  height: "0.1em",
-                  borderRadius: "50%",
-                  background: "currentColor",
-                  filter: "drop-shadow(0 0 0.1em currentColor)",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  left: "0.28em",
-                  top: "0.86em",
-                  width: "0.09em",
-                  height: "0.09em",
-                  borderRadius: "50%",
-                  background: "currentColor",
-                  filter: "drop-shadow(0 0 0.1em currentColor)",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  left: "1.02em",
-                  top: "0.66em",
-                  width: "0.08em",
-                  height: "0.08em",
-                  borderRadius: "50%",
-                  background: "currentColor",
-                  filter: "drop-shadow(0 0 0.1em currentColor)",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  left: "2.24em",
-                  top: "0.7em",
-                  width: "0.09em",
-                  height: "0.09em",
-                  borderRadius: "50%",
-                  background: "currentColor",
-                  filter: "drop-shadow(0 0 0.1em currentColor)",
-                }}
-              />
-            </>
-          )}
         </div>
 
         {/* SKELETON */}
@@ -583,22 +429,6 @@ export default function Being({ spec, level, size = 120, color = "#8B93A8", clas
             <div style={legRStyle} />
           </>
         )}
-        {is("disciplined") && (
-          <div
-            style={{
-              position: "absolute",
-              left: "0.92em",
-              top: "1.94em",
-              width: "0.76em",
-              height: "0.24em",
-              borderRadius: "0.12em",
-              background: "linear-gradient(180deg,rgba(255,255,255,0.6),currentColor)",
-              boxShadow: "0 0 0.16em currentColor",
-              zIndex: 2,
-            }}
-          />
-        )}
-
         {/* TORSO ARMOR */}
         {hasArmor && (
           <div
