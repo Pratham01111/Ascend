@@ -125,7 +125,7 @@ export default function CommandDashboard() {
             <div className="mt-4 font-mono text-[11px] tracking-[0.16em] text-[#565d70]">
               {spec.key === "initiate"
                 ? "COMPLETE A MISSION TO BEGIN SPECIALIZING"
-                : "SHAPED BY TODAY'S ACTIONS"}
+                : "SHAPED BY YOUR CONSISTENCY"}
             </div>
           </div>
 

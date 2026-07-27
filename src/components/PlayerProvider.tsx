@@ -1,89 +1,42 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import { INITIAL_MISSIONS, type Mission } from "@/lib/missions";
-import { computeCategoryXP, computeLevel, computeSpec } from "@/lib/player";
-import { MISSION_CATEGORIES, SPECS, type SpecKey } from "@/lib/specs";
-
-export type MissionEdits = Partial<Pick<Mission, "name" | "cat" | "xp">>;
-
-type PlayerContextValue = {
-  missions: Mission[];
-  toggleMission: (id: string) => void;
-  addMission: () => void;
-  updateMission: (id: string, edits: MissionEdits) => void;
-  removeMission: (id: string) => void;
-  doneCount: number;
-  totalCount: number;
-  totalXP: number;
-  level: number;
-  xpInLevel: number;
-  xpMax: number;
-  spec: SpecKey;
-  categoryXP: Record<string, number>;
-};
-
-const PlayerContext = createContext<PlayerContextValue | null>(null);
-
-export function PlayerProvider({ children }: { children: ReactNode }) {
-  const [missions, setMissions] = useState<Mission[]>(INITIAL_MISSIONS);
-
-  function toggleMission(id: string) {
-    setMissions((prev) => prev.map((m) => (m.id === id ? { ...m, done: !m.done } : m)));
-  }
-
-  function addMission() {
-    setMissions((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        name: "New goal",
-        cat: MISSION_CATEGORIES[0],
-        xp: 50,
-        done: false,
-      },
-    ]);
-  }
-
-  function updateMission(id: string, edits: MissionEdits) {
-    setMissions((prev) => prev.map((m) => (m.id === id ? { ...m, ...edits } : m)));
-  }
-
-  function removeMission(id: string) {
-    setMissions((prev) => prev.filter((m) => m.id !== id));
-  }
-
-  const value = useMemo<PlayerContextValue>(() => {
-    const doneCount = missions.filter((m) => m.done).length;
-    const totalXP = missions.filter((m) => m.done).reduce((sum, m) => sum + m.xp, 0);
-    const { level, xpInLevel, xpMax } = computeLevel(totalXP);
-    const spec = computeSpec(missions);
-    const categoryXP = computeCategoryXP(missions);
-
-    return {
-      missions,
-      toggleMission,
-      addMission,
-      updateMission,
-      removeMission,
-      doneCount,
-      totalCount: missions.length,
-      totalXP,
-      level,
-      xpInLevel,
-      xpMax,
-      spec,
-      categoryXP,
-    };
-  }, [missions]);
-
-  return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;
-}
+import { useSyncExternalStore } from "react";
+import { computeLevel, computeSpecFromCategoryXP } from "@/lib/player";
+import {
+  addMission,
+  getProgressSnapshot,
+  getServerProgressSnapshot,
+  removeMission,
+  subscribeProgress,
+  toggleMission,
+  updateMission,
+} from "@/lib/progressStore";
+import { SPECS } from "@/lib/specs";
 
 export function usePlayer() {
-  const ctx = useContext(PlayerContext);
-  if (!ctx) throw new Error("usePlayer must be used within a PlayerProvider");
-  return ctx;
+  const progress = useSyncExternalStore(
+    subscribeProgress,
+    getProgressSnapshot,
+    getServerProgressSnapshot
+  );
+  const { level, xpInLevel, xpMax } = computeLevel(progress.lifetimeXP);
+  const spec = computeSpecFromCategoryXP(progress.lifetimeCategoryXP);
+
+  return {
+    missions: progress.missions,
+    toggleMission,
+    addMission,
+    updateMission,
+    removeMission,
+    doneCount: progress.doneCount,
+    totalCount: progress.totalCount,
+    totalXP: progress.lifetimeXP,
+    level,
+    xpInLevel,
+    xpMax,
+    spec,
+    categoryXP: progress.lifetimeCategoryXP,
+  };
 }
 
 export function useSpecInfo() {

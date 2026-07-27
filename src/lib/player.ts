@@ -1,10 +1,9 @@
-import { CATEGORY_TO_SPEC, SPECS, type SpecInfo, type SpecKey } from "./specs";
-import type { Mission } from "./missions";
+import { CATEGORY_TO_SPEC, type SpecKey } from "./specs";
 
 /**
  * XP required to go from `level` to `level + 1`. Grows each level so early
- * levels come quickly and later ones take real sustained effort — no backend
- * yet, so this only tracks XP earned this session.
+ * levels come quickly and later ones take real sustained effort. Fed by the
+ * lifetime XP ledger (src/lib/progressStore.ts) — level never resets daily.
  */
 function xpToNextLevel(level: number): number {
   return 100 + level * 40;
@@ -22,20 +21,11 @@ export function computeLevel(totalXP: number) {
   return { level, xpInLevel: remaining, xpMax: threshold };
 }
 
-export function computeCategoryXP(missions: Mission[]) {
-  const totals: Record<string, number> = {};
-  for (const m of missions) {
-    if (!m.done) continue;
-    totals[m.cat] = (totals[m.cat] || 0) + m.xp;
-  }
-  return totals;
-}
-
-export function computeSpec(missions: Mission[]): SpecKey {
-  const totals = computeCategoryXP(missions);
+/** Which specialization dominates given lifetime XP earned per category. */
+export function computeSpecFromCategoryXP(categoryXP: Record<string, number>): SpecKey {
   let bestCat: string | null = null;
   let bestXP = 0;
-  for (const [cat, xp] of Object.entries(totals)) {
+  for (const [cat, xp] of Object.entries(categoryXP)) {
     if (xp > bestXP) {
       bestXP = xp;
       bestCat = cat;
@@ -43,8 +33,4 @@ export function computeSpec(missions: Mission[]): SpecKey {
   }
   if (!bestCat) return "initiate";
   return CATEGORY_TO_SPEC[bestCat] || "initiate";
-}
-
-export function specInfo(spec: SpecKey): SpecInfo {
-  return SPECS[spec];
 }

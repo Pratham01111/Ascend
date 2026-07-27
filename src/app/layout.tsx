@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
-import { PlayerProvider } from "@/components/PlayerProvider";
 import AmbientBackground from "@/components/AmbientBackground";
 import "./globals.css";
 
@@ -32,10 +31,8 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${jetBrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <PlayerProvider>
-          <AmbientBackground />
-          {children}
-        </PlayerProvider>
+        <AmbientBackground />
+        {children}
       </body>
     </html>
   );

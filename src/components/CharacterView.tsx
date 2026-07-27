@@ -91,7 +91,7 @@ export default function CharacterView() {
             {/* XP by category */}
             <div className="lg:flex-[1.25]">
               <div className="mb-5 font-mono text-[11px] tracking-[0.22em] uppercase text-[#9299AD]">
-                Where the XP went — today
+                Where the XP went — lifetime
               </div>
               {CATEGORY_ORDER.map((cat) => {
                 const xp = categoryXP[cat] || 0;

@@ -96,7 +96,7 @@ export default function EvolutionReveal() {
             <div className="mt-6 text-sm text-[#9299AD]">
               {spec.key === "initiate"
                 ? "Complete a mission on Command to begin specializing."
-                : "Today's actions shaped this form."}
+                : "Your consistency over time shaped this form."}
             </div>
           </div>
 
