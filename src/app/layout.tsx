@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import AmbientBackground from "@/components/AmbientBackground";
+import LevelUpOverlay from "@/components/LevelUpOverlay";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <AmbientBackground />
         {children}
+        <LevelUpOverlay />
       </body>
     </html>
   );

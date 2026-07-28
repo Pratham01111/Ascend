@@ -2,8 +2,11 @@ import { INITIAL_MISSIONS, type Mission } from "./missions";
 import { MISSION_CATEGORIES } from "./specs";
 
 const STORAGE_KEY = "ascend:progress";
+const HISTORY_LIMIT = 120;
+const STREAK_WINDOW_DAYS = 30;
 
 type MissionDef = Omit<Mission, "done">;
+type HistoryEntry = { date: string; doneCount: number };
 
 type StoredProgress = {
   missionDefs: MissionDef[];
@@ -11,6 +14,8 @@ type StoredProgress = {
   doneIds: string[];
   lifetimeXP: number;
   lifetimeCategoryXP: Record<string, number>;
+  history: HistoryEntry[];
+  lastSeenLevel: number;
 };
 
 function todayKey(): string {
@@ -24,6 +29,8 @@ function defaultProgress(): StoredProgress {
     doneIds: [],
     lifetimeXP: 0,
     lifetimeCategoryXP: {},
+    history: [],
+    lastSeenLevel: 0,
   };
 }
 
@@ -31,13 +38,28 @@ function readStored(): StoredProgress {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultProgress();
-    const parsed = JSON.parse(raw) as StoredProgress;
-    // New calendar day: clear today's checkmarks, keep the mission list and
-    // lifetime totals untouched — level/spec never reset, only the checkboxes do.
-    if (parsed.todayKey !== todayKey()) {
-      return { ...parsed, todayKey: todayKey(), doneIds: [] };
+    const parsed = JSON.parse(raw) as Partial<StoredProgress>;
+    const normalized: StoredProgress = {
+      missionDefs: parsed.missionDefs ?? defaultProgress().missionDefs,
+      todayKey: parsed.todayKey ?? todayKey(),
+      doneIds: parsed.doneIds ?? [],
+      lifetimeXP: parsed.lifetimeXP ?? 0,
+      lifetimeCategoryXP: parsed.lifetimeCategoryXP ?? {},
+      history: parsed.history ?? [],
+      lastSeenLevel: parsed.lastSeenLevel ?? 0,
+    };
+
+    // New calendar day: fold yesterday's tally into history, then clear
+    // today's checkmarks. Mission list, lifetime totals, and history are
+    // never touched here — only the daily checkboxes roll over.
+    if (normalized.todayKey !== todayKey()) {
+      const history = [
+        ...normalized.history,
+        { date: normalized.todayKey, doneCount: normalized.doneIds.length },
+      ].slice(-HISTORY_LIMIT);
+      return { ...normalized, todayKey: todayKey(), doneIds: [], history };
     }
-    return parsed;
+    return normalized;
   } catch {
     return defaultProgress();
   }
@@ -75,16 +97,55 @@ export type PublicProgress = {
   totalCount: number;
   lifetimeXP: number;
   lifetimeCategoryXP: Record<string, number>;
+  streak: number;
+  activeDaysInWindow: number;
+  windowDays: number;
+  lastSeenLevel: number;
 };
+
+/** Consecutive active days ending today (or yesterday, if today has no activity yet). */
+function computeStreak(history: HistoryEntry[], todayActive: boolean): number {
+  const activeByDate = new Map(history.map((h) => [h.date, h.doneCount > 0]));
+  let streak = todayActive ? 1 : 0;
+  const cursor = new Date();
+  cursor.setDate(cursor.getDate() - 1);
+  while (activeByDate.get(cursor.toDateString())) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
+/** How many of the last `windowDays` calendar days had at least one completed mission. */
+function computeActiveDaysInWindow(
+  history: HistoryEntry[],
+  todayActive: boolean,
+  windowDays: number
+): number {
+  const activeByDate = new Map(history.map((h) => [h.date, h.doneCount > 0]));
+  let active = 0;
+  const cursor = new Date();
+  for (let i = 0; i < windowDays; i++) {
+    const isActive = i === 0 ? todayActive : !!activeByDate.get(cursor.toDateString());
+    if (isActive) active += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return active;
+}
 
 function toPublic(s: StoredProgress): PublicProgress {
   const doneSet = new Set(s.doneIds);
+  const todayActive = doneSet.size > 0;
   return {
     missions: s.missionDefs.map((m) => ({ ...m, done: doneSet.has(m.id) })),
     doneCount: doneSet.size,
     totalCount: s.missionDefs.length,
     lifetimeXP: s.lifetimeXP,
     lifetimeCategoryXP: s.lifetimeCategoryXP,
+    streak: computeStreak(s.history, todayActive),
+    activeDaysInWindow: computeActiveDaysInWindow(s.history, todayActive, STREAK_WINDOW_DAYS),
+    windowDays: STREAK_WINDOW_DAYS,
+    lastSeenLevel: s.lastSeenLevel,
   };
 }
 
@@ -108,6 +169,10 @@ const DEFAULT_PUBLIC: PublicProgress = {
   totalCount: INITIAL_MISSIONS.length,
   lifetimeXP: 0,
   lifetimeCategoryXP: {},
+  streak: 0,
+  activeDaysInWindow: 0,
+  windowDays: STREAK_WINDOW_DAYS,
+  lastSeenLevel: 0,
 };
 
 export function getServerProgressSnapshot(): PublicProgress {
@@ -183,4 +248,11 @@ export function removeMission(id: string) {
     lifetimeXP,
     lifetimeCategoryXP,
   });
+}
+
+/** Marks a level as "celebrated" so the evolution overlay won't re-fire for it. */
+export function markLevelSeen(level: number) {
+  const s = ensureState();
+  if (level <= s.lastSeenLevel) return;
+  commit({ ...s, lastSeenLevel: level });
 }

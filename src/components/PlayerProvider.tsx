@@ -36,6 +36,10 @@ export function usePlayer() {
     xpMax,
     spec,
     categoryXP: progress.lifetimeCategoryXP,
+    streak: progress.streak,
+    activeDaysInWindow: progress.activeDaysInWindow,
+    windowDays: progress.windowDays,
+    lastSeenLevel: progress.lastSeenLevel,
   };
 }
 

@@ -7,12 +7,19 @@ import { CATEGORY_COLORS, MILESTONES } from "@/lib/character";
 const CATEGORY_ORDER = ["Mind", "Engineering", "Physical"];
 
 export default function CharacterView() {
-  const { missions, doneCount, totalCount, totalXP, level, categoryXP } = usePlayer();
+  const {
+    missions,
+    totalXP,
+    level,
+    categoryXP,
+    streak,
+    activeDaysInWindow,
+    windowDays,
+  } = usePlayer();
   const spec = useSpecInfo();
 
-  const consistencyPct = totalCount ? (doneCount / totalCount) * 100 : 0;
-  const consistencyLabel =
-    doneCount === 0 ? "UNPROVEN" : doneCount === totalCount ? "RELENTLESS" : "BUILDING";
+  const consistencyPct = windowDays ? (activeDaysInWindow / windowDays) * 100 : 0;
+  const consistencyLabel = streak === 0 ? "UNPROVEN" : streak < 7 ? "BUILDING" : "RELENTLESS";
 
   const completedMissions = missions.filter((m) => m.done);
 
@@ -61,7 +68,7 @@ export default function CharacterView() {
                 Consistency
               </div>
               <div className="font-mono text-[11px] tracking-wide text-[#2ECC8F]">
-                {doneCount > 0 ? "▲ RISING" : "— NOT STARTED"}
+                {streak > 0 ? "▲ RISING" : "— NOT STARTED"}
               </div>
             </div>
             <div className="mb-4 flex items-baseline gap-4">
@@ -72,7 +79,7 @@ export default function CharacterView() {
                 {consistencyLabel}
               </div>
               <div className="font-mono text-[13px] text-[#9299AD]">
-                {doneCount} / {totalCount} missions today
+                {streak}-day streak · {activeDaysInWindow} / {windowDays} active days
               </div>
             </div>
             <div className="h-[7px] overflow-hidden rounded-full bg-[#161a26]">
