@@ -124,7 +124,9 @@ export default function CommandDashboard() {
             </div>
             <div className="mt-4 font-mono text-[11px] tracking-[0.16em] text-[#565d70]">
               {spec.key === "initiate"
-                ? "COMPLETE A MISSION TO BEGIN SPECIALIZING"
+                ? level === 0
+                  ? "COMPLETE A MISSION TO BEGIN YOUR JOURNEY"
+                  : `SPECIALIZATION UNLOCKS AT LEVEL 10 · ${10 - level} TO GO`
                 : "SHAPED BY YOUR CONSISTENCY"}
             </div>
           </div>

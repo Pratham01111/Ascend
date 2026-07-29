@@ -12,7 +12,11 @@ export default function LevelUpOverlay() {
   // time a real level-up produces a new value to celebrate.
   const { phase } = useEvolutionPhases(level);
 
-  const shouldShow = level > lastSeenLevel;
+  // Levels 1-9 don't change anything visually (still The Initiate until 10),
+  // so skip the reveal ceremony until there's an actual specialization to show.
+  // lastSeenLevel is left untouched here, so the overlay still fires correctly
+  // once level 10 resolves a real spec.
+  const shouldShow = level > lastSeenLevel && spec.key !== "initiate";
   if (!shouldShow) return null;
 
   return (

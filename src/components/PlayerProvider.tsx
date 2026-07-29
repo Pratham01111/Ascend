@@ -20,7 +20,9 @@ export function usePlayer() {
     getServerProgressSnapshot
   );
   const { level, xpInLevel, xpMax } = computeLevel(progress.lifetimeXP);
-  const spec = computeSpecFromCategoryXP(progress.lifetimeCategoryXP);
+  // Stay The Initiate through level 9 — specialization only resolves once
+  // you've actually put in enough sustained work to have a clear direction.
+  const spec = level >= 10 ? computeSpecFromCategoryXP(progress.lifetimeCategoryXP) : "initiate";
 
   return {
     missions: progress.missions,

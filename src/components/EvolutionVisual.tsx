@@ -59,7 +59,9 @@ export default function EvolutionVisual({ spec, level, phase, beingSize = 130 }:
           </div>
           <div className="mt-6 text-sm text-[#9299AD]">
             {spec.key === "initiate"
-              ? "Complete a mission on Command to begin specializing."
+              ? level === 0
+                ? "Complete a mission on Command to begin your journey."
+                : `Specialization unlocks at level 10 — ${10 - level} to go.`
               : "Your consistency over time shaped this form."}
           </div>
         </div>
